@@ -198,5 +198,5 @@ def samplying_sound(id,quantity = 100):
     if model_id==1:
         generate_sound(id,quantity=quantity,model = big_model)
 
-for i in range(3,len(label_list)):
+for i in range(len(label_list)):
     samplying_sound(i,quantity=5)
