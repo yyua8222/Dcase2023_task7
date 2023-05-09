@@ -53,8 +53,10 @@ def get_small():
 
 
 big_model = get_big().cuda()
+big_model = torch.compile(big_model)
 big_model.eval()
 small_model = get_small().cuda()
+small_model = torch.compile(small_model)
 small_model.eval()
 name = big_model.get_validation_folder_name()
 
