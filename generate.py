@@ -69,7 +69,7 @@ small_model.eval()
 
 label_list = ['dog_bark', 'footstep', 'gunshot', 'keyboard', 'moving_motor_vehicle', 'rain', 'sneeze_cough']
 caption_list = ["a dog bark","foot steps","gun shot","someone using keyboard","a moving motor","rain","a man cough"]
-limit_list = [0.37,0.05,0.2,0.2,0.75,0.2,0.2]
+limit_list = [0.37,0.03,0.2,0.2,0.75,0.2,0.2]
 gen_list = [3,3,3,3,10,3,3]
 scale_list = [2.5,2.5,1.0,1.0,3,1.0,2.5]
 target_list = [-1,-1,-1,-1,0,-1,-1]
