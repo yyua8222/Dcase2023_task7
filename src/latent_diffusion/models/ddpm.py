@@ -1,12 +1,12 @@
 import pdb
 import sys
 import os
-
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torchaudio
 import numpy as np
-import pytorch_lightning as pl
+
 from contextlib import contextmanager
 from functools import partial
 from tqdm import tqdm
@@ -97,9 +97,9 @@ class DDPM(pl.LightningModule):
         ], 'currently only supporting "eps" and "x0"'
         self.parameterization = parameterization
         self.state = None
-        print(
-            f"{self.__class__.__name__}: Running in {self.parameterization}-prediction mode"
-        )
+        # print(
+        #     f"{self.__class__.__name__}: Running in {self.parameterization}-prediction mode"
+        # )
         self.cond_stage_model = None
         self.clip_denoised = clip_denoised
         self.log_every_t = log_every_t
@@ -288,15 +288,15 @@ class DDPM(pl.LightningModule):
         if self.use_ema:
             self.model_ema.store(self.model.parameters())
             self.model_ema.copy_to(self.model)
-            if context is not None:
-                print(f"{context}: Switched to EMA weights")
+            # if context is not None:
+            #     print(f"{context}: Switched to EMA weights")
         try:
             yield None
         finally:
             if self.use_ema:
                 self.model_ema.restore(self.model.parameters())
-                if context is not None:
-                    print(f"{context}: Restored training weights")
+                # if context is not None:
+                #     print(f"{context}: Restored training weights")
 
     def init_from_ckpt(self, path, ignore_keys=list(), only_model=False):
         sd = torch.load(path, map_location="cpu")
@@ -536,7 +536,7 @@ class LatentDiffusion(DDPM):
         self,
         batch,
         k,
-        return_first_stage_encode=True,
+        return_first_stage_encode=False,
         return_first_stage_outputs=False,
         force_c_encode=False,
         cond_key=None,
@@ -550,11 +550,11 @@ class LatentDiffusion(DDPM):
 
         x = x.to(self.device)
 
-        if return_first_stage_encode:
-            encoder_posterior = self.encode_first_stage(x)
-            z = self.get_first_stage_encoding(encoder_posterior).detach()
-        else:
-            z = None
+        # if return_first_stage_encode:
+        #     encoder_posterior = self.encode_first_stage(x)
+        #     z = self.get_first_stage_encoding(encoder_posterior).detach()
+        # else:
+        #     z = None
 
         if self.model.conditioning_key is not None:
             if cond_key is None:
@@ -588,7 +588,7 @@ class LatentDiffusion(DDPM):
             if self.use_positional_encodings:
                 pos_x, pos_y = self.compute_latent_shifts(batch)
                 c = {"pos_x": pos_x, "pos_y": pos_y}
-        out = [z, c]
+        out = c
         if return_first_stage_outputs:
             xrec = self.decode_first_stage(z)
             out.extend([x, xrec])
@@ -884,7 +884,7 @@ class LatentDiffusion(DDPM):
 
 
         intermediate = None
-        print("Use ddim sampler")
+        # print("Use ddim sampler")
 
         ddim_sampler = DDIMSampler(self)
         samples, intermediates = ddim_sampler.sample(
@@ -923,7 +923,7 @@ class LatentDiffusion(DDPM):
         target = -1,
         change_limit = 0,
         saved = True,
-        wave_save_path = "results",
+        wave_save_path = "results3",
         **kwargs,
     ):
         try:
@@ -935,7 +935,7 @@ class LatentDiffusion(DDPM):
             assert ddim_steps is not None
 
         use_ddim = ddim_steps is not None
-#         waveform_save_path = os.path.join(self.get_log_dir(), name)
+        # waveform_save_path = os.path.join(self.get_log_dir(), name)
         waveform_save_path = os.path.join(wave_save_path,name)
         os.makedirs(waveform_save_path, exist_ok=True)
 
@@ -946,116 +946,118 @@ class LatentDiffusion(DDPM):
             print("The evaluation has already been done at %s" % waveform_save_path)
             return waveform_save_path
 
-        with self.ema_scope("Plotting"):
-            for batch in batchs:
-                z, c = self.get_input(
-                    batch,
-                    self.first_stage_key,
-                    return_first_stage_outputs=False,
-                    force_c_encode=True,
-                    return_original_cond=False,
-                    bs=None,
+        # with self.ema_scope("Plotting"):
+        for batch in batchs:
+            c = self.get_input(
+                batch,
+                self.first_stage_key,
+                return_first_stage_outputs=False,
+                force_c_encode=True,
+                return_original_cond=False,
+                bs=None,
+            )
+            text = super().get_input(batch, "text")
+
+            # print("the z shape is",z.shape[0])
+
+            batch_size = 1 * n_gen
+            c = torch.cat([c] * n_gen, dim=0)
+            text = text * n_gen
+
+            if use_transfer:
+                x_T = torch.cat([z]*n_gen,dim=0)
+
+            if unconditional_guidance_scale != 1.0:
+                unconditional_conditioning = (
+                    self.cond_stage_model.get_unconditional_condition(batch_size)
                 )
-                text = super().get_input(batch, "text")
 
-                batch_size = z.shape[0] * n_gen
-                c = torch.cat([c] * n_gen, dim=0)
-                text = text * n_gen
+            fnames = list(super().get_input(batch, "fname"))
 
-                if use_transfer:
-                    x_T = torch.cat([z]*n_gen,dim=0)
+            samples, _ = self.sample_log(
+                cond=c,
+                batch_size=batch_size,
+                x_T=x_T,
+                ddim=use_ddim,
+                ddim_steps=ddim_steps,
+                eta=ddim_eta,
+                unconditional_guidance_scale=unconditional_guidance_scale,
+                unconditional_conditioning=unconditional_conditioning,
+                use_plms=use_plms,
+            )
 
-                if unconditional_guidance_scale != 1.0:
-                    unconditional_conditioning = (
-                        self.cond_stage_model.get_unconditional_condition(batch_size)
+            mel = self.decode_first_stage(samples)
+
+            waveform = self.mel_spectrogram_to_waveform(
+                mel, savepath=waveform_save_path, bs=None, name=fnames, save=False
+            )
+
+            # print(f"the waveform shape is {waveform.shape} and the text is {text}")
+            if target>=0:
+                limit = self.embed_v.weight[target][-1].cpu().detach().numpy()+0
+                if change_limit>0:
+                    limit = limit-0.05*change_limit
+                tarwav = torch.cat([self.embed_v.weight[target][:-1].reshape(1,-1)]*n_gen,dim=0)
+                waveforms = torch.FloatTensor(waveform).squeeze(1)
+                try:
+                    similarity = self.cond_stage_model.emb_similarity(waveforms, tarwav.reshape(n_gen,1,-1))
+                except:
+                    pdb.set_trace()
+
+            else:
+                if n_gen==1:
+                    txt = text+text
+                    wav = torch.FloatTensor(waveform).squeeze(1)
+                    waveforms = torch.cat([wav, wav])
+                    similarity = self.cond_stage_model.cos_similarity(waveforms, txt)
+                    while similarity[0]!=similarity[1]:
+                        # print("not equal!")
+                        similarity = self.cond_stage_model.cos_similarity(waveforms, txt)
+                else:
+                    similarity = self.cond_stage_model.cos_similarity(
+                        torch.FloatTensor(waveform).squeeze(1), text
                     )
 
-                fnames = list(super().get_input(batch, "fname"))
+                    new_similarity = self.cond_stage_model.cos_similarity(
+                        torch.FloatTensor(waveform).squeeze(1), text
+                    )
+                    compare = similarity==new_similarity
 
-                samples, _ = self.sample_log(
-                    cond=c,
-                    batch_size=batch_size,
-                    x_T=x_T,
-                    ddim=use_ddim,
-                    ddim_steps=ddim_steps,
-                    eta=ddim_eta,
-                    unconditional_guidance_scale=unconditional_guidance_scale,
-                    unconditional_conditioning=unconditional_conditioning,
-                    use_plms=use_plms,
-                )
-
-                mel = self.decode_first_stage(samples)
-
-                waveform = self.mel_spectrogram_to_waveform(
-                    mel, savepath=waveform_save_path, bs=None, name=fnames, save=False
-                )
-
-                # print(f"the waveform shape is {waveform.shape} and the text is {text}")
-                if target>=0:
-                    limit = self.embed_v.weight[target][-1].cpu().detach().numpy()+0
-                    if change_limit>0:
-                        limit = limit-0.05*change_limit
-                    tarwav = torch.cat([self.embed_v.weight[target][:-1].reshape(1,-1)]*n_gen,dim=0)
-                    waveforms = torch.FloatTensor(waveform).squeeze(1)
-                    try:
-                        similarity = self.cond_stage_model.emb_similarity(waveforms, tarwav.reshape(n_gen,1,-1))
-                    except:
-                        pdb.set_trace()
-
-                else:
-                    if n_gen==1:
-                        txt = text+text
-                        wav = torch.FloatTensor(waveform).squeeze(1)
-                        waveforms = torch.cat([wav, wav])
-                        similarity = self.cond_stage_model.cos_similarity(waveforms, txt)
-                        while similarity[0]!=similarity[1]:
-                            # print("not equal!")
-                            similarity = self.cond_stage_model.cos_similarity(waveforms, txt)
-                    else:
-                        similarity = self.cond_stage_model.cos_similarity(
-                            torch.FloatTensor(waveform).squeeze(1), text
-                        )
-
+                    while False in compare:
+                        similarity = new_similarity
                         new_similarity = self.cond_stage_model.cos_similarity(
-                            torch.FloatTensor(waveform).squeeze(1), text
+                        torch.FloatTensor(waveform).squeeze(1), text
                         )
+                        # print("not equal! ")
                         compare = similarity==new_similarity
 
-                        while False in compare:
-                            similarity = new_similarity
-                            new_similarity = self.cond_stage_model.cos_similarity(
-                            torch.FloatTensor(waveform).squeeze(1), text
-                            )
-                            # print("not equal! ")
-                            compare = similarity==new_similarity
+                    if clap:
+                        print("calculate clap score")
 
-                        if clap:
-                            print("calculate clap score")
+            best_index = []
+            # for i in range(z.shape[0]):
+            candidates = similarity
+            max_index = torch.argmax(candidates).item()
+            best_index.append(max_index)
+                # print(f"from candidates {candidates} choose number {max_index}")
 
-                best_index = []
-                for i in range(z.shape[0]):
-                    candidates = similarity[i :: z.shape[0]]
-                    max_index = torch.argmax(candidates).item()
-                    best_index.append(i + max_index * z.shape[0])
-                    # print(f"from candidates {candidates} choose number {max_index}")
+            waveform = waveform[best_index]
+            best_score = similarity[best_index]
+            # print(f"Similarity between generated audio {similarity} and text{text}")
+            # print(f"Choose the following indexes:{best_index} and score {best_score}")
+            # print(f"Waveform save path: {waveform_save_path}/{fnames}")
 
-                waveform = waveform[best_index]
-                best_score = similarity[best_index]
-                print(f"Similarity between generated audio {similarity} and text{text}")
-                print(f"Choose the following indexes:{best_index} and score {best_score}")
-                print(f"Waveform save path: {waveform_save_path}/{fnames}")
+            cur_text = text[0]
 
-                cur_text = text[0]
+            if best_score < limit:
+                # print(f"score is too low for score {limit}")
+                return False,torch.FloatTensor(waveform).squeeze(1),False
+            if best_score > 0.99:
+                # print(f"score is too high as  {best_score}"),False
 
-                if best_score < limit:
-                    print(f"score is too low for score {limit}")
-                    return False,torch.FloatTensor(waveform).squeeze(1),False
-                if best_score > 0.99:
-                    print(f"score is too high as  {best_score}"),False
+                return False,torch.FloatTensor(waveform).squeeze(1),False
 
-                    return False,torch.FloatTensor(waveform).squeeze(1),False
-
-                result_wav = self.save_waveform(waveform, waveform_save_path, name=fnames,saved=saved)
+            result_wav = self.save_waveform(waveform, waveform_save_path, name=fnames,saved=saved)
         return best_score,torch.FloatTensor(waveform).squeeze(1),result_wav
 
 
