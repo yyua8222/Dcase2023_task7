@@ -923,6 +923,7 @@ class LatentDiffusion(DDPM):
         target = -1,
         change_limit = 0,
         saved = True,
+        wave_save_path = "results",
         **kwargs,
     ):
         try:
@@ -934,7 +935,8 @@ class LatentDiffusion(DDPM):
             assert ddim_steps is not None
 
         use_ddim = ddim_steps is not None
-        waveform_save_path = os.path.join(self.get_log_dir(), name)
+#         waveform_save_path = os.path.join(self.get_log_dir(), name)
+        waveform_save_path = os.path.join(wave_save_path,name)
         os.makedirs(waveform_save_path, exist_ok=True)
 
         if (
