@@ -94,99 +94,101 @@ def generate_sound(id,quantity = 100,model = big_model):
     scale = scale_list[id]
 
     result_list = []
+    
+    with model.ema_scope("Plotting"):
 
 
 
-    for j in tqdm(range(quantity)):
-        with torch.no_grad():
-#             model.logger_save_dir = f"/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/audioLDM_decase/results/temp{attampt}/" + label
-#             model.logger_project = ""
-#             model.logger_version = ""
-            model.cond_stage_key = "text"
-            model.cond_stage_model.embed_mode = "text"
-            count = 0
-            batch = [torch.rand(1,400,64), torch.rand(1,400,512), torch.rand(1,527), (f"{str(sam)}.wav",),torch.rand(1,64000),(g_caption,)]
+        for j in tqdm(range(quantity)):
+            with torch.no_grad():
+    #             model.logger_save_dir = f"/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/audioLDM_decase/results/temp{attampt}/" + label
+    #             model.logger_project = ""
+    #             model.logger_version = ""
+                model.cond_stage_key = "text"
+                model.cond_stage_model.embed_mode = "text"
+                count = 0
+                batch = [torch.rand(1,400,64), torch.rand(1,400,512), torch.rand(1,527), (f"{str(sam)}.wav",),torch.rand(1,64000),(g_caption,)]
 
-            
-            saved,waveform,result = model.generate_sample(
-                [batch],
-                name=label,
-                unconditional_guidance_scale=scale,
-                ddim_steps=model.evaluation_params["ddim_sampling_steps"],
-                n_gen=num,
-                limit=limit,
-                target=target
-            )
-            count += 1
-            change_limit = 0
-            while not saved:
-                if count>=3:
-                    # limit = limit -0.05
-                    change_limit +=1
-                    count=0
-                    # limit = limit-0.01
+
                 saved,waveform,result = model.generate_sample(
-                [batch],
-                name=label,
-                unconditional_guidance_scale=scale,
-                ddim_steps=model.evaluation_params["ddim_sampling_steps"],
-                n_gen=num,
-                limit=limit,
-                target=target,
-                change_limit = change_limit
+                    [batch],
+                    name=label,
+                    unconditional_guidance_scale=scale,
+                    ddim_steps=model.evaluation_params["ddim_sampling_steps"],
+                    n_gen=num,
+                    limit=limit,
+                    target=target
                 )
-                count+=1
-
-            if target>=0:
-                sam+=1
-                target +=1
-            else: 
-                low = False
-                waveforms = torch.cat([waveform, waveform])
-                txt = [g_caption, g_caption]
-                similarity = clap.cos_similarity(waveforms.cuda(), txt)
-                while similarity[0] != similarity[1]:
-                    print("output not equal!")
-                    similarity = clap.cos_similarity(waveforms.cuda(), txt)
-
-                score = similarity[0].cpu().detach().numpy() + 0
-                if score < limit:
-                    low = True
-                while low:
-                    low = False
-                    # print("output too low")
-                    saved, waveform,result = model.generate_sample(
-                        [batch],
-                        name=label,
-                        unconditional_guidance_scale=scale,
-                        ddim_steps=model.evaluation_params["ddim_sampling_steps"],
-
-                        n_gen=num,
-                        limit=limit,
+                count += 1
+                change_limit = 0
+                while not saved:
+                    if count>=3:
+                        # limit = limit -0.05
+                        change_limit +=1
+                        count=0
+                        # limit = limit-0.01
+                    saved,waveform,result = model.generate_sample(
+                    [batch],
+                    name=label,
+                    unconditional_guidance_scale=scale,
+                    ddim_steps=model.evaluation_params["ddim_sampling_steps"],
+                    n_gen=num,
+                    limit=limit,
+                    target=target,
+                    change_limit = change_limit
                     )
-                    while not saved:
-                        saved, waveform,result = model.generate_sample(
-                            [batch],
-                            name=label,
-                            unconditional_guidance_scale=scale,
-                            ddim_steps=model.evaluation_params["ddim_sampling_steps"],
-                            n_gen=num,
-                            limit=limit,
-                        )
+                    count+=1
 
+                if target>=0:
+                    sam+=1
+                    target +=1
+                else: 
+                    low = False
                     waveforms = torch.cat([waveform, waveform])
                     txt = [g_caption, g_caption]
                     similarity = clap.cos_similarity(waveforms.cuda(), txt)
                     while similarity[0] != similarity[1]:
-                        # print("output not equal!")
+#                         print("output not equal!")
                         similarity = clap.cos_similarity(waveforms.cuda(), txt)
 
                     score = similarity[0].cpu().detach().numpy() + 0
                     if score < limit:
                         low = True
-                sam+=1
+                    while low:
+                        low = False
+                        # print("output too low")
+                        saved, waveform,result = model.generate_sample(
+                            [batch],
+                            name=label,
+                            unconditional_guidance_scale=scale,
+                            ddim_steps=model.evaluation_params["ddim_sampling_steps"],
 
-            result_list.append(result)
+                            n_gen=num,
+                            limit=limit,
+                        )
+                        while not saved:
+                            saved, waveform,result = model.generate_sample(
+                                [batch],
+                                name=label,
+                                unconditional_guidance_scale=scale,
+                                ddim_steps=model.evaluation_params["ddim_sampling_steps"],
+                                n_gen=num,
+                                limit=limit,
+                            )
+
+                        waveforms = torch.cat([waveform, waveform])
+                        txt = [g_caption, g_caption]
+                        similarity = clap.cos_similarity(waveforms.cuda(), txt)
+                        while similarity[0] != similarity[1]:
+                            # print("output not equal!")
+                            similarity = clap.cos_similarity(waveforms.cuda(), txt)
+
+                        score = similarity[0].cpu().detach().numpy() + 0
+                        if score < limit:
+                            low = True
+                    sam+=1
+
+                result_list.append(result)
             
 def samplying_sound(id,quantity = 100):
 
