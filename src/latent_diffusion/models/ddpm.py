@@ -706,7 +706,7 @@ class LatentDiffusion(DDPM):
             # if pre_sr == 22050:
 
             if pre_sr == 16000:
-                print("upsamplying to 22050hz")
+#                 print("upsamplying to 22050hz")
                 waveform = torch.Tensor(waveform)
                 if self.transform:
                     self.transform = torchaudio.transforms.Resample(16000, 22050)
