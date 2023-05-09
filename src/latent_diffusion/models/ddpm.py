@@ -923,7 +923,7 @@ class LatentDiffusion(DDPM):
         target = -1,
         change_limit = 0,
         saved = True,
-        wave_save_path = "results3",
+        wave_save_path = "results",
         **kwargs,
     ):
         try:
