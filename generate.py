@@ -8,16 +8,8 @@ import numpy as np
 import argparse
 import yaml
 import torch
-from pytorch_lightning.strategies.ddp import DDPStrategy
 from latent_diffusion.models.ddpm import LatentDiffusion
-from utilities.data.dataset import Dataset as AudioSetDataset
 from tqdm import tqdm
-from torch.utils.data import WeightedRandomSampler
-from torch.utils.data import DataLoader
-from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import WandbLogger
-from utilities.tools import listdir_nohidden, get_restore_step, copy_test_subset_data
 import torchaudio
 import json
 
