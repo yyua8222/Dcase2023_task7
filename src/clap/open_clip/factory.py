@@ -149,9 +149,9 @@ def create_model(
                     big_clap = laion_clap.CLAP_Module(enable_fusion=False, amodel='HTSAT-base')
                     # big_clap.load_ckpt(checkpoint_path)
                     model = big_clap.model
-                else:
+#                 else:
 
-                    ckpt = load_state_dict(checkpoint_path, skip_params=True)
+#                     ckpt = load_state_dict(checkpoint_path, skip_params=True)
                     # model.load_state_dict(ckpt)
                 param_names = [n for n, p in model.named_parameters()]
                 # for n in param_names:
