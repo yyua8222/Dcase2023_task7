@@ -58,7 +58,7 @@ big_model.eval()
 small_model = get_small().cuda()
 small_model = torch.compile(small_model)
 small_model.eval()
-name = big_model.get_validation_folder_name()
+# name = big_model.get_validation_folder_name()
 
 
 # label_list = ["foot","cough","dog","keyboard","gun"]
@@ -99,9 +99,9 @@ def generate_sound(id,quantity = 100,model = big_model):
 
     for j in tqdm(range(quantity)):
         with torch.no_grad():
-            model.logger_save_dir = f"/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/audioLDM_decase/results/temp{attampt}/" + label
-            model.logger_project = ""
-            model.logger_version = ""
+#             model.logger_save_dir = f"/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/audioLDM_decase/results/temp{attampt}/" + label
+#             model.logger_project = ""
+#             model.logger_version = ""
             model.cond_stage_key = "text"
             model.cond_stage_model.embed_mode = "text"
             count = 0
@@ -110,7 +110,7 @@ def generate_sound(id,quantity = 100,model = big_model):
             
             saved,waveform,result = model.generate_sample(
                 [batch],
-                name=name,
+                name=label,
                 unconditional_guidance_scale=scale,
                 ddim_steps=model.evaluation_params["ddim_sampling_steps"],
                 n_gen=num,
@@ -127,7 +127,7 @@ def generate_sound(id,quantity = 100,model = big_model):
                     # limit = limit-0.01
                 saved,waveform,result = model.generate_sample(
                 [batch],
-                name=name,
+                name=label,
                 unconditional_guidance_scale=scale,
                 ddim_steps=model.evaluation_params["ddim_sampling_steps"],
                 n_gen=num,
@@ -157,7 +157,7 @@ def generate_sound(id,quantity = 100,model = big_model):
                     # print("output too low")
                     saved, waveform,result = model.generate_sample(
                         [batch],
-                        name=name,
+                        name=label,
                         unconditional_guidance_scale=scale,
                         ddim_steps=model.evaluation_params["ddim_sampling_steps"],
 
@@ -167,7 +167,7 @@ def generate_sound(id,quantity = 100,model = big_model):
                     while not saved:
                         saved, waveform,result = model.generate_sample(
                             [batch],
-                            name=name,
+                            name=label,
                             unconditional_guidance_scale=scale,
                             ddim_steps=model.evaluation_params["ddim_sampling_steps"],
                             n_gen=num,
