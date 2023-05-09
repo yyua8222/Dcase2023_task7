@@ -1,0 +1,13 @@
+pytorch-lightning==1.8.6
+einops==0.3.2
+taming-transformers==0.0.1
+taming-transformers-rom1504==0.0.6
+wandb==0.13.7
+torchlibrosa==0.1.0
+clip git+https://github.com/openai/CLIP.git@d50d76daa670286dd6cacf3bcd80b5e4823fc8e1
+transformers==4.28.1
+kornia==0.6.9
+braceexpand==0.1.7
+webdataset==0.2.31
+wget==3.2
+laion-clap==1.1.3
