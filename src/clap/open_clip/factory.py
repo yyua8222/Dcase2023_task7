@@ -133,12 +133,12 @@ def create_model(
         model = CLAP(**model_cfg)
 
         if pretrained:
-            checkpoint_path = ""
-            url = get_pretrained_url(amodel_name, pretrained)
-            if url:
-                checkpoint_path = download_pretrained(url, root=openai_model_cache_dir)
-            elif os.path.exists(pretrained_orig):
-                checkpoint_path = pretrained_orig
+            checkpoint_path = pretrained_orig
+#             url = get_pretrained_url(amodel_name, pretrained)
+#             if url:
+#                 checkpoint_path = download_pretrained(url, root=openai_model_cache_dir)
+#             elif os.path.exists(pretrained_orig):
+                
             if checkpoint_path:
                 logging.info(
                     f"Loading pretrained {amodel_name}-{tmodel_name} weights ({pretrained})."
