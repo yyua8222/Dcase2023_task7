@@ -1,0 +1,100 @@
+# log_directory: "/mnt/fast/nobackup/scratch4weeks/hl01486/exps/audio_generation/texttomusic/latent_diffusion"
+log_directory: "/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/Controllable_TTM/model_logs/new_pretrain_clap"
+
+id: 
+  version: "_prompt2"
+  name: "4_29_new_clap"
+
+model:
+  # reload_from_ckpt: "/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/Controllable_TTM/model_logs/new_pretrain_clap/4-15_new_clap/4_15_new_clap_v1/checkpoints/last_928410.ckpt"
+  # reload_from_ckpt: "/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/Controllable_TTM/model_logs/new_pretrain_clap/4-29_pre_clap_prompt/4_29_new_clap__prompt2/checkpoints/last.ckpt"
+  target: latent_diffusion.models.ddpm.LatentDiffusion
+  params:
+    base_learning_rate: 3.0e-05
+    batchsize: 8
+    linear_start: 0.0015
+    linear_end: 0.0195
+    num_timesteps_cond: 1
+    log_every_t: 200
+    timesteps: 1000
+    first_stage_key: fbank
+    cond_stage_key: text # or text and waveform
+    latent_t_size: 100 # TODO might need to change
+    latent_f_size: 16
+    #latent padding is from ddpm.py-line 1442
+    channels: 8 # TODO might need to change
+    cond_stage_trainable: true
+    conditioning_key: film
+    monitor: val/loss_simple_ema
+    scale_by_std: true
+    has_embed: true
+    unet_config:
+      target: latent_diffusion.modules.diffusionmodules.openaimodel.UNetModel
+      params:
+        image_size: 64 # Ignore this parameter
+        extra_film_condition_dim: 512
+        extra_film_use_concat: true
+        in_channels: 8 # TODO might need to change
+        out_channels: 8 # TODO might need to change
+        model_channels: 192 # TODO might need to change
+        attention_resolutions:
+        - 8
+        - 4
+        - 2
+        num_res_blocks: 2
+        channel_mult:
+        - 1
+        - 2
+        - 3
+        - 5
+        num_head_channels: 32
+        use_spatial_transformer: true
+    first_stage_config:
+      base_learning_rate: 4.5e-05
+      target: latent_encoder.autoencoder.AutoencoderKL
+      params:
+        # reload_from_ckpt: "/mnt/fast/nobackup/scratch4weeks/hl01486/exps/audio_generation/stablediffusion/autoencoderkl16k/audioverse/2022-12-23-kl-f4-ch128_v2_8_128_4.5e-06_v1/checkpoints/train_step=1445000.ckpt"
+        #reload_from_ckpt: "/mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/Controllable_TTM/model_logs/autoencoder/16k/train_step=1445000.ckpt"
+        batchsize: 4
+        monitor: val/rec_loss
+        image_key: fbank
+        subband: 1
+        embed_dim: 8
+        mel_band: 64
+        time_shuffle: 1
+        lossconfig:
+          target: latent_diffusion.modules.losses.LPIPSWithDiscriminator
+          params:
+            disc_start: 50001
+            kl_weight: 1.0
+            disc_weight: 0.5
+            disc_in_channels: 1
+        ddconfig:
+          double_z: true
+          z_channels: 8
+          resolution: 256
+          downsample_time: false
+          in_channels: 1
+          out_ch: 1
+          ch: 128
+          ch_mult:
+          - 1
+          - 2
+          - 4
+          num_res_blocks: 2
+          attn_resolutions: []
+          dropout: 0.0
+
+    cond_stage_config:
+      target: latent_diffusion.modules.encoders.modules.CLAPAudioEmbeddingClassifierFreev2
+      params:
+        pretrained_path: /mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/Controllable_TTM/model_logs/new_clap/music_speech_audioset_epoch_15_esc_89.98.pt
+        # pretrained_path: /mnt/fast/nobackup/scratch4weeks/yy01071/audioLDM/Controllable_TTM/src/clap/epoch_top_0_audioset_no_fusion.pt
+        sampling_rate: 16000
+        embed_mode: text # or text  and audio
+        unconditional_prob: 0.1
+
+    evaluation_params:
+      unconditional_guidance_scale: 2.0
+      ddim_sampling_steps: 200
+      n_candidates_per_samples: 3
