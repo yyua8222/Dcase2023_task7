@@ -148,10 +148,6 @@ ssr-eval==0.0.6
 stack-data==0.6.2
 taming-transformers==0.0.1
 taming-transformers-rom1504==0.0.6
-tensorboard==2.12.0
-tensorboard-data-server==0.7.0
-tensorboard-plugin-wit==1.8.1
-tensorboardX==2.5.1
 termcolor==2.2.0
 tf-slim==1.1.0
 threadpoolctl==3.1.0
