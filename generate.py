@@ -29,7 +29,7 @@ small_config = yaml.load(
 
 def get_big():
     latent_diffusion = LatentDiffusion(**big_config["model"]["params"])
-    PATH = "/content/gdrive/MyDrive/model_logs/clap_submit.ckpt"
+    PATH = "model_logs/clap_submit.ckpt"
     state_dict = torch.load(PATH)["state_dict"]
     try:
         transformer = state_dict["transform.kernel"]
@@ -40,7 +40,7 @@ def get_big():
     return latent_diffusion
 def get_small():
     latent_diffusion = LatentDiffusion(**small_config["model"]["params"])
-    PATH = "/content/gdrive/MyDrive/model_logs/dcase_submit.ckpt"
+    PATH = "model_logs/dcase_submit.ckpt"
     state_dict = torch.load(PATH)["state_dict"]
     try:
         transformer = state_dict["transform.kernel"]
