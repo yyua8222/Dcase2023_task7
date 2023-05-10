@@ -69,7 +69,7 @@ small_model.eval()
 
 label_list = ['dog_bark', 'footstep', 'gunshot', 'keyboard', 'moving_motor_vehicle', 'rain', 'sneeze_cough']
 caption_list = ["a dog bark","foot steps","gun shot","someone using keyboard","a moving motor","rain","a man cough"]
-limit_list = [0.37,0.03,0.2,0.15,0.75,0.2,0.2]
+limit_list = [0.3,0.03,0.2,0.15,0.75,0.2,0.2]
 gen_list = [3,3,3,3,10,3,3]
 scale_list = [2.5,2.5,1.0,1.0,3,1.0,2.5]
 target_list = [-1,-1,-1,-1,0,-1,-1]
@@ -190,7 +190,7 @@ def generate_sound(id,quantity = 100,model = big_model):
 
                 result_list.append(result)
             
-def samplying_sound(id,quantity = 100):
+def samplying_sound(id,quantity = 5):
 
     model_id = model_list[id]
 
@@ -200,5 +200,5 @@ def samplying_sound(id,quantity = 100):
     if model_id==1:
         generate_sound(id,quantity=quantity,model = big_model)
 
-for i in range(len(label_list)):
-    samplying_sound(i,quantity=5)
+# for i in range(len(label_list)):
+#     samplying_sound(i,quantity=5)
