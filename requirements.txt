@@ -1,9 +1,7 @@
 absl-py==1.4.0
-accelerate==0.18.0
 aiohttp==3.8.3
 aiosignal==1.3.1
 antlr4-python3-runtime==4.9.3
-apache-beam==2.45.0
 appdirs==1.4.4
 asttokens==2.2.1
 astunparse==1.6.3
@@ -12,10 +10,8 @@ attrs==22.2.0
 audioread==3.0.0
 auraloss==0.3.0
 backcall==0.2.0
-beautifulsoup4==4.11.2
 blobfile==2.0.2
 braceexpand==0.1.7
-bs4==0.0.1
 cachetools==5.3.0
 certifi==2022.12.7
 cffi==1.15.1
@@ -158,9 +154,6 @@ tensorboard==2.12.0
 tensorboard-data-server==0.7.0
 tensorboard-plugin-wit==1.8.1
 tensorboardX==2.5.1
-tensorflow==2.12.0
-tensorflow-estimator==2.12.0
-tensorflow-io-gcs-filesystem==0.32.0
 termcolor==2.2.0
 tf-slim==1.1.0
 threadpoolctl==3.1.0
