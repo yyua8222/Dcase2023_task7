@@ -189,16 +189,18 @@ def generate_sound(id,quantity = 100,model = big_model):
                     sam+=1
 
                 result_list.append(result)
+    return result_list
             
 def samplying_sound(id,quantity = 5):
 
     model_id = model_list[id]
 
     if model_id==0:
-        generate_sound(id,quantity=quantity,model = small_model)
+        result_list = generate_sound(id,quantity=quantity,model = small_model)
 
     if model_id==1:
-        generate_sound(id,quantity=quantity,model = big_model)
+        result_list = generate_sound(id,quantity=quantity,model = big_model)
+    return result_list
 
 # for i in range(len(label_list)):
 #     samplying_sound(i,quantity=5)
