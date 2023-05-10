@@ -191,7 +191,7 @@ def generate_sound(id,quantity = 100,model = big_model):
                 result_list.append(result)
     return result_list
             
-def samplying_sound(id,quantity = 5):
+def samplying_sound(id,quantity = 2):
 
     model_id = model_list[id]
 
